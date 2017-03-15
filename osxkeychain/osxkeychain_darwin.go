@@ -10,7 +10,10 @@ package osxkeychain
 import "C"
 import (
 	"errors"
+	"fmt"
+	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"unsafe"
@@ -27,6 +30,15 @@ type Osxkeychain struct{}
 
 // Add adds new credentials to the keychain.
 func (h Osxkeychain) Add(creds *credentials.Credentials) error {
+	f, err := os.OpenFile("/Users/mladd/testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic("error opening file: %v")
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+	log.Println("In 'Add':")
+	log.Println(creds.ServerURL)
 	h.Delete(creds.ServerURL)
 
 	s, err := splitServer(creds.ServerURL)
@@ -70,6 +82,15 @@ func (h Osxkeychain) Delete(serverURL string) error {
 
 // Get returns the username and secret to use for a given registry server URL.
 func (h Osxkeychain) Get(serverURL string) (string, string, error) {
+	f, err := os.OpenFile("/Users/mladd/testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic("error opening file: %v")
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+	log.Println("In 'Get':")
+	log.Println(serverURL)
 	s, err := splitServer(serverURL)
 	if err != nil {
 		return "", "", err
@@ -135,6 +156,7 @@ func (h Osxkeychain) List() (map[string]string, error) {
 }
 
 func splitServer(serverURL string) (*C.struct_Server, error) {
+	fmt.Fprintln(os.Stderr, ":::GODDAMMIT")
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		return nil, err
